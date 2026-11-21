@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="업무 문서의 시작을 간편하게. AI WORK LAB에서 문서 유형과 핵심 내용을 정리하세요.">
+  <title>AI WORK LAB | 업무 문서 워크스페이스</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner"><a class="brand" href="./"><span class="brand-icon" aria-hidden="true">W</span>AI WORK LAB</a><span class="version">실습 버전 v0.1</span></div>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="page-title">
+      <span class="eyebrow">YOUR EVERYDAY WORKSPACE</span>
+      <h1 id="page-title">막막한 업무 문서,<br>시작은 가볍게.</h1>
+      <p>보고서부터 이메일까지, 필요한 문서를 선택하고 생각을 정리해 보세요.</p>
+    </section>
+    <form id="document-form" novalidate>
+      <section class="panel" aria-labelledby="type-heading">
+        <div class="section-heading"><h2 id="type-heading">어떤 문서를 작성할까요?</h2><span class="required-note">모든 항목 필수</span></div>
+        <!-- 라디오 버튼은 한 가지만 선택되며 키보드로도 조작할 수 있습니다. -->
+        <fieldset aria-describedby="type-error">
+          <legend class="sr-only">문서 유형 선택 (필수)</legend>
+          <div class="type-grid">
+            <label class="type-card"><input type="radio" name="documentType" value="업무보고서 작성" required><span class="card-icon" aria-hidden="true">▤</span><span class="card-title">업무보고서 작성</span><span class="card-description">업무 현황과 성과를 명확하게</span></label>
+            <label class="type-card"><input type="radio" name="documentType" value="비즈니스 이메일 작성" required><span class="card-icon" aria-hidden="true">✉</span><span class="card-title">비즈니스 이메일 작성</span><span class="card-description">상황에 맞는 정중한 커뮤니케이션</span></label>
+            <label class="type-card"><input type="radio" name="documentType" value="광고 및 홍보 문구 작성" required><span class="card-icon" aria-hidden="true">✦</span><span class="card-title">광고 및 홍보 문구 작성</span><span class="card-description">우리 서비스의 매력을 한 문장에</span></label>
+            <label class="type-card"><input type="radio" name="documentType" value="회의록 요약" required><span class="card-icon" aria-hidden="true">≡</span><span class="card-title">회의록 요약</span><span class="card-description">논의 내용과 다음 할 일을 한눈에</span></label>
+          </div>
+        </fieldset>
+        <p class="field-error" id="type-error" hidden></p>
+      </section>
+      <section class="panel writing-panel" aria-labelledby="content-heading">
+        <h2 id="content-heading">문서에 담을 내용을 알려주세요</h2>
+        <div class="field"><label for="purpose">문서 작성 목적</label><p class="field-hint" id="purpose-hint">누구에게, 어떤 목적으로 전달하는 문서인가요?</p><input id="purpose" name="purpose" type="text" placeholder="예: 팀장님께 이번 주 프로젝트 진행 상황 보고" required aria-describedby="purpose-hint purpose-error"><p class="field-error" id="purpose-error" hidden></p></div>
+        <div class="field"><label for="content">핵심 내용</label><p class="field-hint" id="content-hint">꼭 포함할 정보나 전달할 내용을 자유롭게 적어주세요.</p><textarea id="content" name="content" rows="7" placeholder="예: 신규 서비스 기획안 작성 완료&#10;디자인 검토 진행 중&#10;다음 주 개발 일정 협의 예정" required aria-describedby="content-hint content-error"></textarea><p class="field-error" id="content-error" hidden></p></div>
+        <div class="form-bottom"><p>v0.1에서는 입력한 내용을 확인할 수 있습니다.<br>AI 문서 생성 기능은 아직 제공하지 않습니다.</p><button type="submit">입력 내용 확인</button></div>
+        <p id="form-status" class="sr-only" role="status" aria-live="polite"></p>
+      </section>
+    </form>
+    <!-- 사용자 입력은 JavaScript의 textContent로만 표시합니다. -->
+    <section id="result" class="panel result-panel" aria-labelledby="result-heading" hidden>
+      <span class="eyebrow">REVIEW YOUR INPUT</span><h2 id="result-heading" tabindex="-1">입력 내용을 확인해 주세요</h2><p class="result-note">현재 입력한 내용입니다. 수정 후 확인 버튼을 누르면 갱신됩니다.</p>
+      <dl><div><dt>선택한 문서 유형</dt><dd id="result-type"></dd></div><div><dt>문서 작성 목적</dt><dd id="result-purpose"></dd></div><div><dt>핵심 내용</dt><dd id="result-content"></dd></div></dl>
+    </section>
+  </main>
+  <footer><span class="footer-brand">AI WORK LAB</span><span>일하는 모두를 위한 AI 문서 실험실</span></footer>
+</body>
+</html>
