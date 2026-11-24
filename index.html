@@ -36,6 +36,15 @@
       </section>
       <section class="panel writing-panel" aria-labelledby="content-heading">
         <h2 id="content-heading">문서에 담을 내용을 알려주세요</h2>
+        <fieldset class="style-field" aria-describedby="style-error">
+          <legend>작성 스타일</legend>
+          <div class="style-options">
+            <label class="style-option"><input type="radio" name="writingStyle" value="정중한" checked required><span><strong>정중한</strong><span class="style-description">공손한 존댓말과 상대방을 배려하는 표현</span></span></label>
+            <label class="style-option"><input type="radio" name="writingStyle" value="간결한" required><span><strong>간결한</strong><span class="style-description">핵심 정보 우선, 불필요한 표현 최소화</span></span></label>
+            <label class="style-option"><input type="radio" name="writingStyle" value="전문적인" required><span><strong>전문적인</strong><span class="style-description">객관적 표현, 정확한 업무 용어, 논리적인 구성</span></span></label>
+          </div>
+          <p class="field-error" id="style-error" hidden></p>
+        </fieldset>
         <div class="field"><label for="purpose">문서 작성 목적</label><p class="field-hint" id="purpose-hint">누구에게, 어떤 목적으로 전달하는 문서인가요?</p><input id="purpose" name="purpose" type="text" placeholder="예: 팀장님께 이번 주 프로젝트 진행 상황 보고" required aria-describedby="purpose-hint purpose-error"><p class="field-error" id="purpose-error" hidden></p></div>
         <div class="field"><label for="content">핵심 내용</label><p class="field-hint" id="content-hint">꼭 포함할 정보나 전달할 내용을 자유롭게 적어주세요.</p><textarea id="content" name="content" rows="7" placeholder="예: 신규 서비스 기획안 작성 완료&#10;디자인 검토 진행 중&#10;다음 주 개발 일정 협의 예정" required aria-describedby="content-hint content-error"></textarea><p class="field-error" id="content-error" hidden></p></div>
         <div class="form-bottom"><p>입력 내용을 확인하거나 ChatGPT용 프롬프트를 만들어 보세요.<br>실제 AI 문서 생성은 ChatGPT에서 진행해 주세요.</p><div class="form-actions"><button type="submit" class="button-secondary">입력 내용 확인</button><button type="button" id="generate-prompt">AI 프롬프트 생성</button></div></div>
@@ -45,7 +54,7 @@
     <!-- 사용자 입력은 JavaScript의 textContent로만 표시합니다. -->
     <section id="result" class="panel result-panel" aria-labelledby="result-heading" hidden>
       <span class="eyebrow">REVIEW YOUR INPUT</span><h2 id="result-heading" tabindex="-1">입력 내용을 확인해 주세요</h2><p class="result-note">현재 입력한 내용입니다. 수정 후 확인 버튼을 누르면 갱신됩니다.</p>
-      <dl><div><dt>선택한 문서 유형</dt><dd id="result-type"></dd></div><div><dt>문서 작성 목적</dt><dd id="result-purpose"></dd></div><div><dt>핵심 내용</dt><dd id="result-content"></dd></div></dl>
+      <dl><div><dt>선택한 문서 유형</dt><dd id="result-type"></dd></div><div><dt>작성 스타일</dt><dd id="result-style"></dd></div><div><dt>문서 작성 목적</dt><dd id="result-purpose"></dd></div><div><dt>핵심 내용</dt><dd id="result-content"></dd></div></dl>
     </section>
     <section id="prompt-result" class="panel result-panel" aria-labelledby="prompt-heading" hidden>
       <span class="eyebrow">YOUR AI PROMPT</span>

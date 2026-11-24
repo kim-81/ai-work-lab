@@ -75,3 +75,15 @@ footer { max-width: 1064px; margin: auto; padding: 24px 28px 35px; border-top: 1
 #copy-status { margin: 0; color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
 @media (max-width: 850px) { .form-bottom { flex-wrap: wrap; } }
 @media (max-width: 520px) { .form-actions { flex-direction: column; } .copy-actions { align-items: stretch; flex-direction: column; } }
+
+/* 문서 유형 카드와 별도 클래스를 사용해 기존 메뉴 디자인을 유지합니다. */
+.style-field { margin-top: 26px; }
+.style-field legend { font-weight: 700; margin-bottom: 10px; }
+.style-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.style-option { display: flex; align-items: flex-start; gap: 10px; min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+.style-option:hover { border-color: #8caaf0; }
+.style-option.is-selected { border-color: var(--blue); background: #eef4ff; box-shadow: inset 0 0 0 1px var(--blue); }
+.style-option:focus-within { outline: 3px solid #5b8bf0; outline-offset: 3px; }
+.style-option input { flex: 0 0 auto; margin: 5px 0 0; accent-color: var(--blue); }
+.style-description { display: block; color: var(--muted); font-size: 14px; margin-top: 5px; overflow-wrap: anywhere; }
+@media (max-width: 850px) { .style-options { grid-template-columns: 1fr; } }
