@@ -63,6 +63,21 @@
       <label class="sr-only" for="prompt-output">생성된 프롬프트 내용</label>
       <textarea id="prompt-output" rows="14" readonly aria-describedby="prompt-hint"></textarea>
       <div class="copy-actions"><button type="button" id="copy-prompt">프롬프트 복사</button><p id="copy-status" role="status" aria-live="polite"></p></div>
+      <div class="copy-actions"><button type="button" id="save-prompt" disabled>프롬프트 저장</button><p id="save-status" role="status" aria-live="polite"></p></div>
+    </section>
+    <section class="panel" aria-labelledby="saved-heading">
+      <h2 id="saved-heading" tabindex="-1">저장한 프롬프트</h2>
+      <p class="result-note">현재 브라우저의 이 사이트에만 저장되며 서버로 전송되지 않습니다. 브라우저 데이터를 삭제하면 저장 내역도 사라질 수 있습니다.</p>
+      <p id="storage-status" role="status" aria-live="polite"></p>
+      <p id="saved-empty">저장한 프롬프트가 없습니다.</p>
+      <ul id="saved-list" class="saved-list"></ul>
+      <div id="saved-detail" hidden>
+        <h3 id="saved-detail-heading" tabindex="-1">저장한 내용</h3>
+        <dl><div><dt>문서 유형 · 작성 스타일 · 저장 시각</dt><dd id="saved-meta"></dd></div><div><dt>작성 목적</dt><dd id="saved-purpose"></dd></div><div><dt>핵심 내용</dt><dd id="saved-content"></dd></div></dl>
+        <label for="saved-output">저장된 프롬프트</label>
+        <textarea id="saved-output" rows="14" readonly></textarea>
+        <div class="copy-actions"><button type="button" id="copy-saved">저장한 프롬프트 복사</button><button type="button" id="delete-saved" class="button-secondary">선택 항목 삭제</button><p id="saved-copy-status" role="status" aria-live="polite"></p></div>
+      </div>
     </section>
   </main>
   <footer><span class="footer-brand">AI WORK LAB</span><span>일하는 모두를 위한 AI 문서 실험실</span></footer>

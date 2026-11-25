@@ -87,3 +87,14 @@ footer { max-width: 1064px; margin: auto; padding: 24px 28px 35px; border-top: 1
 .style-option input { flex: 0 0 auto; margin: 5px 0 0; accent-color: var(--blue); }
 .style-description { display: block; color: var(--muted); font-size: 14px; margin-top: 5px; overflow-wrap: anywhere; }
 @media (max-width: 850px) { .style-options { grid-template-columns: 1fr; } }
+
+button:disabled { opacity: .55; cursor: not-allowed; }
+.saved-list { list-style: none; padding: 0; margin: 20px 0; display: grid; gap: 10px; }
+.saved-list li { min-width: 0; }
+.saved-item { width: 100%; text-align: left; white-space: normal; overflow-wrap: anywhere; background: #f1f5fb; color: var(--navy); border: 1px solid var(--line); }
+.saved-item:hover, .saved-item[aria-pressed="true"] { background: #eaf0fc; border-color: var(--blue); }
+#saved-detail { border-top: 1px solid var(--line); padding-top: 12px; min-width: 0; }
+#saved-detail label { display: block; margin: 20px 0 8px; font-weight: 700; }
+#saved-output { line-height: 1.7; overflow-wrap: anywhere; }
+#storage-status, #save-status, #saved-copy-status { overflow-wrap: anywhere; font-size: 14px; }
+@media (max-width: 520px) { .copy-actions button { white-space: normal; overflow-wrap: anywhere; } }
