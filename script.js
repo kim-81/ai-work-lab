@@ -208,6 +208,17 @@ const savedDetail = document.querySelector("#saved-detail");
 const savedOutput = document.querySelector("#saved-output");
 const savedCopyStatus = document.querySelector("#saved-copy-status");
 const savedCopyButton = document.querySelector("#copy-saved");
+const savedSearch = document.querySelector("#saved-search");
+const savedTypeFilter = document.querySelector("#saved-type-filter");
+const savedSort = document.querySelector("#saved-sort");
+let savedReadFailed = false;
+// 기존 문서 유형의 실제 값을 사용해 필터와 저장 데이터를 정확히 연결합니다.
+Object.keys(promptGuides).forEach((type) => {
+  const option = document.createElement("option");
+  option.value = type;
+  option.textContent = type;
+  savedTypeFilter.append(option);
+});
 let savedItems = [];
 let selectedSavedId = null;
 let savedRevision = 0;
@@ -225,13 +236,37 @@ function readSavedItems() {
   const data = JSON.parse(raw);
   const ids = new Set();
   const valid = data && data.version === 1 && Array.isArray(data.items) && data.items.every((item) => {
-    if (!item || !["id", "documentType", "writingStyle", "purpose", "content", "prompt", "savedAt"].every((key) => typeof item[key] === "string" && item[key].trim())) return false;
-    if (!Object.hasOwn(promptGuides, item.documentType) || !Object.hasOwn(styleGuides, item.writingStyle) || !Number.isFinite(Date.parse(item.savedAt)) || ids.has(item.id)) return false;
+    if (!item || !["id", "documentType", "writingStyle", "purpose", "content", "prompt"].every((key) => typeof item[key] === "string" && item[key].trim())) return false;
+    if (!Object.hasOwn(promptGuides, item.documentType) || !Object.hasOwn(styleGuides, item.writingStyle) || ids.has(item.id)) return false;
+    // 날짜만 누락되거나 잘못된 항목도 원문을 보존해 표시합니다.
+    if (item.savedAt != null && typeof item.savedAt !== "string") return false;
     ids.add(item.id);
     return true;
   });
   if (!valid) { const error = new Error("Invalid data"); error.name = "InvalidStorageData"; throw error; }
-  return data.items.sort((a, b) => Date.parse(b.savedAt) - Date.parse(a.savedAt));
+  return data.items;
+}
+
+function savedTime(item) {
+  return typeof item.savedAt === "string" ? Date.parse(item.savedAt) : NaN;
+}
+
+function savedDateLabel(item) {
+  const time = savedTime(item);
+  return Number.isFinite(time) ? new Date(time).toLocaleString("ko-KR") : "저장 시각 확인 불가";
+}
+
+function visibleSavedItems() {
+  const query = savedSearch.value.trim().toLowerCase();
+  // filter가 새 배열을 반환하므로 sort해도 원본과 저장 데이터의 순서는 유지됩니다.
+  return savedItems.filter((item) => (!savedTypeFilter.value || item.documentType === savedTypeFilter.value)
+    && (!query || [item.purpose, item.content, item.prompt].some((text) => text.toLowerCase().includes(query))))
+    .sort((a, b) => {
+      const left = savedTime(a), right = savedTime(b);
+      if (!Number.isFinite(left)) return Number.isFinite(right) ? 1 : 0;
+      if (!Number.isFinite(right)) return -1;
+      return savedSort.value === "oldest" ? left - right : right - left;
+    });
 }
 
 function clearSavedDetail() {
@@ -246,7 +281,7 @@ function clearSavedDetail() {
 function showSavedItem(item, focus = true) {
   selectedSavedId = item.id;
   savedRevision++;
-  document.querySelector("#saved-meta").textContent = `${item.documentType} · ${item.writingStyle} · ${new Date(item.savedAt).toLocaleString("ko-KR")}`;
+  document.querySelector("#saved-meta").textContent = `${item.documentType} · ${item.writingStyle} · ${savedDateLabel(item)}`;
   document.querySelector("#saved-purpose").textContent = item.purpose;
   document.querySelector("#saved-content").textContent = item.content;
   savedOutput.value = item.prompt;
@@ -257,22 +292,30 @@ function showSavedItem(item, focus = true) {
 }
 
 function renderSavedList() {
+  const visible = visibleSavedItems();
   savedList.replaceChildren();
-  document.querySelector("#saved-empty").hidden = savedItems.length > 0;
-  savedItems.forEach((item) => {
+  document.querySelector("#saved-empty").hidden = savedReadFailed || savedItems.length > 0;
+  document.querySelector("#saved-no-results").hidden = savedReadFailed || !savedItems.length || visible.length > 0;
+  document.querySelector("#saved-count").textContent = savedReadFailed ? "" : `전체 ${savedItems.length}개 중 ${visible.length}개 표시`;
+  visible.forEach((item) => {
     const li = document.createElement("li");
     const button = document.createElement("button");
     button.type = "button";
     button.className = "saved-item";
     button.dataset.id = item.id;
     button.setAttribute("aria-pressed", String(item.id === selectedSavedId));
-    button.textContent = `${item.documentType} · ${item.writingStyle} · ${new Date(item.savedAt).toLocaleString("ko-KR")}`;
+    button.textContent = `${item.documentType} · ${item.writingStyle} · ${savedDateLabel(item)}`;
     button.addEventListener("click", () => showSavedItem(item));
     li.append(button);
     savedList.append(li);
   });
-  const selected = savedItems.find((item) => item.id === selectedSavedId);
-  if (selected) showSavedItem(selected, false);
+  const selected = visible.find((item) => item.id === selectedSavedId);
+  if (selected) {
+    const meta = `${selected.documentType} · ${selected.writingStyle} · ${savedDateLabel(selected)}`;
+    if (savedOutput.value !== selected.prompt || document.querySelector("#saved-meta").textContent !== meta
+      || document.querySelector("#saved-purpose").textContent !== selected.purpose
+      || document.querySelector("#saved-content").textContent !== selected.content) showSavedItem(selected, false);
+  }
   else clearSavedDetail();
 }
 
@@ -280,10 +323,12 @@ function refreshSavedItems() {
   try {
     const items = readSavedItems();
     savedItems = items;
+    savedReadFailed = false;
     renderSavedList();
     storageStatus.textContent = "";
   } catch (error) {
     savedItems = [];
+    savedReadFailed = true;
     renderSavedList();
     document.querySelector("#saved-empty").hidden = true;
     storageStatus.textContent = storageError(error);
@@ -298,9 +343,10 @@ saveButton.addEventListener("click", () => {
     let id;
     do { id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`; } while (items.some((item) => item.id === id));
     const item = { id, ...generatedSnapshot, savedAt: new Date().toISOString() };
-    const next = [item, ...items].sort((a, b) => Date.parse(b.savedAt) - Date.parse(a.savedAt));
+    const next = [item, ...items];
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, items: next }));
     savedItems = next;
+    savedReadFailed = false;
     renderSavedList();
     storageStatus.textContent = "";
     saveStatus.textContent = "현재 브라우저에 저장했습니다.";
@@ -320,12 +366,17 @@ document.querySelector("#delete-saved").addEventListener("click", () => {
     const next = items.filter((item) => item.id !== selectedSavedId);
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, items: next }));
     savedItems = next;
+    savedReadFailed = false;
     clearSavedDetail();
     renderSavedList();
     storageStatus.textContent = "선택한 저장 항목을 삭제했습니다.";
     document.querySelector("#saved-heading").focus();
   } catch (error) { storageStatus.textContent = storageError(error); }
 });
+
+savedSearch.addEventListener("input", renderSavedList);
+savedTypeFilter.addEventListener("change", renderSavedList);
+savedSort.addEventListener("change", renderSavedList);
 
 window.addEventListener("storage", (event) => {
   if (event.key === STORAGE_KEY || event.key === null) refreshSavedItems();
