@@ -11,12 +11,15 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
   throw new Error("PORT 환경변수는 1~65535 사이의 정수여야 합니다.");
 }
 
+// 요청을 받기 전에 DB 파일과 기본 테이블을 준비합니다. 기존 API는 유지합니다.
+const db = require("./database");
+
 app.disable("x-powered-by");
 
 // JSON 요청 본문을 JavaScript 값으로 변환합니다. 라우트보다 먼저 설정합니다.
 app.use(express.json({ limit: "100kb" }));
 
-// 서버 상태 확인용 API입니다. AI API나 데이터베이스는 연결하지 않습니다.
+// 서버 응답 상태만 확인합니다. DB 상태를 검사하는 API는 아닙니다.
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", service: "AI WORK LAB API" });
 });
@@ -49,6 +52,46 @@ app.post("/api/test", (req, res) => {
     message: "POST API 테스트가 성공했습니다.",
     data: { userId, title, body }
   });
+});
+
+// SQL의 ? 자리에 값을 바인딩하여 입력을 SQL 명령으로 실행하지 않습니다.
+const insertPrompt = db.prepare("INSERT INTO prompts (user_id, title, body) VALUES (?, ?, ?)");
+const findPrompt = db.prepare("SELECT id, user_id, title, body, created_at FROM prompts WHERE id = ?");
+const listPrompts = db.prepare("SELECT id, user_id, title, body, created_at FROM prompts ORDER BY created_at DESC, id DESC");
+const savePrompt = db.transaction((title, body) => {
+  const inserted = insertPrompt.run(1, title, body);
+  return findPrompt.get(inserted.lastInsertRowid);
+});
+
+app.post("/api/prompts", (req, res) => {
+  if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
+    return res.status(400).json({ error: "userId, title, body를 포함한 JSON 객체를 보내 주세요." });
+  }
+  const { userId, title, body } = req.body;
+  const errors = [];
+  // 인증 기능이 없는 교육 단계에서는 숫자 1만 허용합니다.
+  if (!Number.isSafeInteger(userId) || userId !== 1) errors.push("userId는 실습용 숫자 1이어야 합니다.");
+  if (typeof title !== "string" || !title.trim()) errors.push("title은 비어 있지 않은 문자열이어야 합니다.");
+  if (typeof body !== "string" || !body.trim()) errors.push("body는 비어 있지 않은 문자열이어야 합니다.");
+  if (errors.length) return res.status(400).json({ error: "입력값을 확인해 주세요.", details: errors });
+
+  try {
+    const prompt = savePrompt(title, body);
+    return res.status(201).json({ message: "프롬프트를 저장했습니다.", data: prompt });
+  } catch (error) {
+    console.error("프롬프트 저장 실패:", error.code || error.name);
+    return res.status(500).json({ error: "프롬프트를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요." });
+  }
+});
+
+app.get("/api/prompts", (req, res) => {
+  try {
+    // 생성 시각이 같으면 더 큰 ID를 먼저 표시합니다. 빈 테이블은 data: []입니다.
+    return res.status(200).json({ data: listPrompts.all() });
+  } catch (error) {
+    console.error("프롬프트 조회 실패:", error.code || error.name);
+    return res.status(500).json({ error: "프롬프트 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요." });
+  }
 });
 
 // JSON 파싱 오류도 HTML 오류 페이지 대신 이해하기 쉬운 JSON으로 안내합니다.
@@ -86,7 +129,14 @@ const server = app.listen(port, "127.0.0.1", () => {
   console.log(`상태 확인: http://localhost:${port}/api/health`);
 });
 
+// 서버를 종료한 뒤 DB 연결도 정리합니다.
+server.on("close", () => { if (db.open) db.close(); });
+function shutdown() { server.close(); }
+process.once("SIGINT", shutdown);
+process.once("SIGTERM", shutdown);
+
 server.on("error", (error) => {
+  if (db.open) db.close();
   if (error.code === "EADDRINUSE") {
     console.error(`포트 ${port}이 이미 사용 중입니다. 다른 PORT 값을 지정해 주세요.`);
   } else {
