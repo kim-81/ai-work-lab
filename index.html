@@ -47,10 +47,22 @@
         </fieldset>
         <div class="field"><label for="purpose">문서 작성 목적</label><p class="field-hint" id="purpose-hint">누구에게, 어떤 목적으로 전달하는 문서인가요?</p><input id="purpose" name="purpose" type="text" placeholder="예: 팀장님께 이번 주 프로젝트 진행 상황 보고" required aria-describedby="purpose-hint purpose-error"><p class="field-error" id="purpose-error" hidden></p></div>
         <div class="field"><label for="content">핵심 내용</label><p class="field-hint" id="content-hint">꼭 포함할 정보나 전달할 내용을 자유롭게 적어주세요.</p><textarea id="content" name="content" rows="7" placeholder="예: 신규 서비스 기획안 작성 완료&#10;디자인 검토 진행 중&#10;다음 주 개발 일정 협의 예정" required aria-describedby="content-hint content-error"></textarea><p class="field-error" id="content-error" hidden></p></div>
-        <div class="form-bottom"><p>입력 내용을 확인하거나 ChatGPT용 프롬프트를 만들어 보세요.<br>실제 AI 문서 생성은 ChatGPT에서 진행해 주세요.</p><div class="form-actions"><button type="submit" class="button-secondary">입력 내용 확인</button><button type="button" id="generate-prompt">AI 프롬프트 생성</button></div></div>
+        <div class="form-bottom"><p>입력 내용을 확인하거나 ChatGPT용 프롬프트를 만들어 보세요.<br>실제 AI 문서 생성은 ChatGPT에서 진행해 주세요.</p><div class="form-actions"><button type="submit" class="button-secondary">입력 내용 확인</button><button type="button" id="generate-prompt">AI 프롬프트 생성</button><button type="button" id="test-api" class="button-secondary" aria-controls="api-test-panel">서버 연결 테스트</button></div></div>
         <p id="form-status" class="sr-only" role="status" aria-live="polite"></p>
       </section>
     </form>
+    <section id="api-test-panel" class="panel" aria-labelledby="api-heading" aria-busy="false">
+      <h2 id="api-heading">서버 연결 테스트</h2>
+      <p class="result-note">작성 목적과 핵심 내용을 실습 서버로 전송합니다. AI 생성이나 데이터 저장은 하지 않습니다. Express 서버에서 연 화면으로 테스트해 주세요.</p>
+      <p id="api-status" role="status" aria-live="polite">작성 목적과 핵심 내용을 입력한 후 서버 연결 테스트 버튼을 눌러 주세요.</p>
+      <div id="api-response" hidden>
+        <p id="api-http-status"></p>
+        <p class="result-note">전송 당시 입력에 대한 서버 응답입니다. 현재 편집 내용은 변경하지 않습니다.</p>
+        <dl><div><dt>서버 메시지</dt><dd id="api-response-message"></dd></div></dl>
+        <h3>반환 데이터</h3>
+        <pre id="api-response-data"></pre>
+      </div>
+    </section>
     <!-- 사용자 입력은 JavaScript의 textContent로만 표시합니다. -->
     <section id="result" class="panel result-panel" aria-labelledby="result-heading" hidden>
       <span class="eyebrow">REVIEW YOUR INPUT</span><h2 id="result-heading" tabindex="-1">입력 내용을 확인해 주세요</h2><p class="result-note">현재 입력한 내용입니다. 수정 후 확인 버튼을 누르면 갱신됩니다.</p>

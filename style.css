@@ -105,3 +105,9 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .saved-controls input, .saved-controls select { width: 100%; min-width: 0; max-width: 100%; padding: 12px; border: 1px solid #bfcddd; border-radius: 9px; background: #fcfdff; color: var(--navy); font: inherit; }
 #saved-count { color: var(--muted); font-size: 14px; }
 @media (max-width: 850px) { .saved-controls { grid-template-columns: minmax(0, 1fr); } }
+
+#api-status { overflow-wrap: anywhere; }
+#api-status[data-state="error"] { color: #b42332; }
+#api-status[data-state="success"] { color: #17633e; }
+#api-response-data { white-space: pre-wrap; overflow-wrap: anywhere; padding: 16px; background: #f1f5fb; border-radius: 9px; font: inherit; }
+@media (max-width: 520px) { #test-api { white-space: normal; } }
