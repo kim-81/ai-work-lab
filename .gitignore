@@ -4,3 +4,9 @@ node_modules/
 !.env.example
 npm-debug.log*
 coverage/
+
+# 로컬 SQLite 데이터와 저널 파일은 게시하지 않습니다.
+/data/*.sqlite
+/data/*.sqlite-*
+/data/*.db
+/data/*.db-*

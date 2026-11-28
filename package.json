@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/kim-81/ai-work-lab#readme",
   "dependencies": {
+    "better-sqlite3": "13.2.0",
     "express": "^5.3.0"
   }
 }
