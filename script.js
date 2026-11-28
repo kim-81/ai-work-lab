@@ -382,3 +382,95 @@ window.addEventListener("storage", (event) => {
   if (event.key === STORAGE_KEY || event.key === null) refreshSavedItems();
 });
 refreshSavedItems();
+
+// API 실습은 기존 생성 결과와 localStorage 상태를 변경하지 않습니다.
+const apiTestButton = document.querySelector("#test-api");
+const apiTestPanel = document.querySelector("#api-test-panel");
+const apiStatus = document.querySelector("#api-status");
+const apiResponse = document.querySelector("#api-response");
+const apiHttpStatus = document.querySelector("#api-http-status");
+const apiResponseMessage = document.querySelector("#api-response-message");
+const apiResponseData = document.querySelector("#api-response-data");
+let isApiRequesting = false;
+
+function setApiStatus(message, state) {
+  apiStatus.textContent = message;
+  apiStatus.dataset.state = state;
+}
+
+apiTestButton.addEventListener("click", async () => {
+  if (isApiRequesting) return;
+  apiResponse.hidden = true;
+  apiHttpStatus.textContent = "";
+  apiResponseMessage.textContent = "";
+  apiResponseData.textContent = "";
+
+  // 기존 readValidInput은 결과를 초기화하므로 여기서는 API 입력만 검사합니다.
+  const title = purposeInput.value.trim();
+  const body = contentInput.value.trim();
+  if (!title || !body) {
+    setApiStatus("API 테스트를 위해 작성 목적과 핵심 내용을 모두 입력해 주세요.", "error");
+    (!title ? purposeInput : contentInput).focus();
+    return;
+  }
+  if (!/^https?:$/.test(window.location.protocol)) {
+    setApiStatus("파일을 직접 여는 대신 Express 서버가 제공하는 http://localhost:3000 화면에서 테스트해 주세요.", "error");
+    return;
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  isApiRequesting = true;
+  apiTestButton.disabled = true;
+  apiTestPanel.setAttribute("aria-busy", "true");
+  setApiStatus("서버로 전송 중입니다…", "pending");
+
+  try {
+    const response = await fetch("/api/test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: 1, title, body }),
+      signal: controller.signal
+    });
+    apiHttpStatus.textContent = `HTTP ${response.status}`;
+    apiResponse.hidden = false;
+    let payload = null;
+    try { payload = await response.json(); } catch {
+      // 400/413은 본문이 JSON이 아니어도 상태 코드에 맞는 안내를 유지합니다.
+    }
+
+    if (response.status === 400) {
+      const details = Array.isArray(payload?.details) ? payload.details.filter((item) => typeof item === "string").join(" ") : "";
+      const message = typeof payload?.error === "string" ? payload.error : "입력값을 확인해 주세요.";
+      setApiStatus(`HTTP 400: ${message}${details ? " " + details : ""}`, "error");
+      return;
+    }
+    if (response.status === 413) {
+      setApiStatus("HTTP 413: 전송할 내용이 너무 큽니다. 내용을 줄여 다시 시도해 주세요.", "error");
+      return;
+    }
+    if (!response.ok) {
+      setApiStatus(`HTTP ${response.status}: 서버 요청에 실패했습니다. 서버 상태와 API 주소를 확인해 주세요.`, "error");
+      return;
+    }
+    if (response.status !== 201 || !payload || typeof payload.message !== "string" || !payload.message.trim()
+      || !payload.data || payload.data.userId !== 1 || typeof payload.data.title !== "string" || !payload.data.title.trim()
+      || typeof payload.data.body !== "string" || !payload.data.body.trim()) {
+      setApiStatus("응답 형식 오류: HTTP 201과 message, data(userId, title, body)를 확인할 수 없습니다.", "error");
+      return;
+    }
+    // 서버 응답도 HTML로 삽입하지 않고 글자로만 출력합니다.
+    apiResponseMessage.textContent = payload.message;
+    apiResponseData.textContent = JSON.stringify(payload.data, null, 2);
+    setApiStatus("서버 연결 테스트가 성공했습니다. 아래에서 HTTP 201과 반환 데이터를 확인해 주세요.", "success");
+  } catch (error) {
+    setApiStatus(error.name === "AbortError"
+      ? "응답 시간이 15초를 초과했습니다. 잠시 후 다시 시도해 주세요."
+      : "서버에 연결하지 못했습니다. 서버 실행 상태와 접속 주소를 확인해 주세요.", "error");
+  } finally {
+    clearTimeout(timeout);
+    isApiRequesting = false;
+    apiTestButton.disabled = false;
+    apiTestPanel.setAttribute("aria-busy", "false");
+  }
+});
